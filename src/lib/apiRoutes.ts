@@ -53,19 +53,18 @@ export const API_ROUTES = {
       create: `${API_V1}/financial/charts` as const,
       update: (id: number | string) => `${API_V1}/financial/charts/${id}` as const,
       delete: (id: number | string) => `${API_V1}/financial/charts/${id}` as const,
-      points: {
-        list: (chartId: number | string) => `${API_V1}/financial/charts/${chartId}/points` as const,
-        byId: (chartId: number | string, pointId: number | string) => 
-          `${API_V1}/financial/charts/${chartId}/points/${pointId}` as const,
-        create: (chartId: number | string) => 
-          `${API_V1}/financial/charts/${chartId}/points` as const,
-        update: (chartId: number | string, pointId: number | string) => 
-          `${API_V1}/financial/charts/${chartId}/points/${pointId}` as const,
-        delete: (chartId: number | string, pointId: number | string) => 
-          `${API_V1}/financial/charts/${chartId}/points/${pointId}` as const,
-        reorder: (chartId: number | string) => 
-          `${API_V1}/financial/charts/${chartId}/points/reorder` as const,
-      },
+    },
+    // точки графиков (прямой путь без /charts)
+    points: {
+      list: (chartId: number | string) => `${API_V1}/financial/${chartId}/points` as const,
+      byId: (chartId: number | string, pointId: number | string) =>
+        `${API_V1}/financial/${chartId}/points/${pointId}` as const,
+      create: (chartId: number | string) =>
+        `${API_V1}/financial/${chartId}/points` as const,
+      update: (chartId: number | string, pointId: number | string) =>
+        `${API_V1}/financial/${chartId}/points/${pointId}` as const,
+      delete: (chartId: number | string, pointId: number | string) =>
+        `${API_V1}/financial/${chartId}/points/${pointId}` as const,
     },
   },
 } as const;

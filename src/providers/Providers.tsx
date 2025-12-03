@@ -4,6 +4,7 @@
 import { SessionProvider } from "next-auth/react";
 import QueryProvider from "./QueryProvider";
 import ThemeProvider from "./ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -14,8 +15,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                     defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
+                    storageKey="business-theme"
                 >
                     {children}
+                    <Toaster />
                 </ThemeProvider>
             </QueryProvider>
         </SessionProvider>
