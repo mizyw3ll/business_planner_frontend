@@ -1,8 +1,12 @@
 // src/app/dashboard/layout.tsx
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Box from "@mui/material/Box";
 import { authOptions } from "@/src/app/api/auth/[...nextauth]/route";
-import LogoutButton from "@/src/components/LogoutButton";
+import { AppHeader } from "@/src/components/layout/AppHeader";
+import { DashboardSidebar } from "@/src/components/layout/DashboardSidebar";
+import { SidebarProvider } from "@/src/components/layout/SidebarContext";
+import { DashboardContent } from "@/src/components/layout/DashboardContent";
 
 export default async function DashboardLayout({
   children,
@@ -16,16 +20,23 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="container flex justify-between items-center py-4">
-          <h1 className="text-2xl font-bold">Финансовый дашборд</h1>
-          <LogoutButton />
-        </div>
-      </div>
-      <div className="container py-8">
-        {children}
-      </div>
-    </div>
+    <SidebarProvider>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor: "var(--background)",
+          color: "var(--foreground)",
+          transition: "background-color 200ms ease, color 200ms ease",
+        }}
+      >
+        <AppHeader
+          username={session.user?.username ?? null}
+          email={session.user?.email ?? null}
+        />
+
+        <DashboardSidebar />
+        <DashboardContent>{children}</DashboardContent>
+      </Box>
+    </SidebarProvider>
   );
 }
