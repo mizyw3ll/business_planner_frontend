@@ -5,10 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useBusinessPlanCreate } from "../api/useBusinessPlanCreate";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+    Paper,
+    Box,
+    Typography,
+    TextField,
+    Button,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/src/lib/appRoutes";
 
@@ -60,40 +63,69 @@ export default function CreateBusinessPlanForm() {
     };
 
     return (
-        <Card className="max-w-4xl mx-auto">
-            <CardHeader>
-                <CardTitle>Создать новый бизнес-план</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Название плана</label>
-                        <Input {...register("title")} placeholder="Мой стартап 2025" />
-                        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
-                    </div>
+        <Paper
+            elevation={4}
+            sx={{
+                maxWidth: 800,
+                mx: "auto",
+                p: 4,
+                borderRadius: 2,
+            }}
+        >
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
+                Создать новый бизнес-план
+            </Typography>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <TextField
+                        {...register("title")}
+                        label="Название плана"
+                        placeholder="Мой стартап 2025"
+                        error={!!errors.title}
+                        helperText={errors.title?.message}
+                        fullWidth
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Описание (необязательно)</label>
-                        <Textarea {...register("description")} placeholder="Краткое описание..." rows={3} />
-                    </div>
+                    <TextField
+                        {...register("description")}
+                        label="Описание (необязательно)"
+                        placeholder="Краткое описание..."
+                        multiline
+                        rows={3}
+                        fullWidth
+                    />
 
                     {/* Здесь можно добавить редактор блоков — пока просто заглушка */}
-                    <div className="bg-muted p-6 rounded-lg">
-                        <p className="text-sm text-muted-foreground">
+                    <Box
+                        sx={{
+                            bgcolor: "action.hover",
+                            p: 3,
+                            borderRadius: 1,
+                        }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
                             Редактор блоков будет в следующей версии
-                        </p>
-                    </div>
+                        </Typography>
+                    </Box>
 
-                    <div className="flex gap-4">
-                        <Button type="submit" disabled={mutation.isPending}>
-                            {mutation.isPending ? "Создаём..." : "Создать план"}
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => router.back()}>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => router.back()}
+                        >
                             Отмена
                         </Button>
-                    </div>
-                </form>
-            </CardContent>
-        </Card>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={mutation.isPending}
+                        >
+                            {mutation.isPending ? "Создаём..." : "Создать план"}
+                        </Button>
+                    </Box>
+                </Box>
+            </form>
+        </Paper>
     );
 }

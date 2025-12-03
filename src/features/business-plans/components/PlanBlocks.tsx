@@ -1,21 +1,6 @@
 // src/features/business-plans/components/PlanBlocks.tsx
-
 "use client";
 
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -33,17 +18,23 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { cn } from "@/src/lib/utils"
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Paper,
+  Box,
+  Typography,
+  IconButton,
+  TextField,
+  MenuItem,
+  Button,
+  Autocomplete,
+} from "@mui/material";
 import { GripVertical, Pencil, Trash2, Save, X } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useBlockUpdate } from "@/src/features/business-plans/api/useBlockUpdate"
-import { useBlockDelete } from "@/src/features/business-plans/api/useBlockDelete"
-import { useBlockReorder } from "@/src/features/business-plans/api/useBlockReorder"
+import { useState, useEffect } from "react";
+import { useBlockUpdate } from "@/src/features/business-plans/api/useBlockUpdate";
+import { useBlockDelete } from "@/src/features/business-plans/api/useBlockDelete";
+import { useBlockReorder } from "@/src/features/business-plans/api/useBlockReorder";
+import { useTheme } from "@mui/material/styles";
 
 type Block = {
   id: number;
@@ -58,13 +49,26 @@ type Props = {
   planId: number;
 };
 
+const blockTypes = [
+  { value: "text", label: "Текст" },
+  { value: "heading", label: "Заголовок" },
+  { value: "subheading", label: "Подзаголовок" },
+  { value: "financial", label: "Финансовый" },
+  { value: "list", label: "Список" },
+  { value: "image", label: "Изображение" },
+  { value: "chart", label: "График" },
+  { value: "divider", label: "Разделитель" },
+  { value: "quote", label: "Цитата" },
+  { value: "code", label: "Код" },
+  { value: "financial_chart", label: "Финансовый график" },
+] as const;
+
 function SortableBlock({ block, planId }: { block: Block; planId: number }) {
+  const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(block.title);
   const [type, setType] = useState(block.block_type);
   const [content, setContent] = useState(block.content);
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
 
   const updateMutation = useBlockUpdate(planId, block.id);
   const deleteMutation = useBlockDelete(planId);
@@ -74,8 +78,9 @@ function SortableBlock({ block, planId }: { block: Block; planId: number }) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? "none" : transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
   };
 
   // Синхронизируем состояние с актуальными данными блока
@@ -87,19 +92,18 @@ function SortableBlock({ block, planId }: { block: Block; planId: number }) {
 
   const handleSave = () => {
     updateMutation.mutate(
-      { title, content, block_type: type, },
+      { title, content, block_type: type },
       {
         onSuccess: () => {
           setIsEditing(false);
-          // Данные уже обновлены через оптимистичное обновление
-        }
+        },
       }
     );
   };
 
   const handleCancel = () => {
-    setTitle(block.title); // Возвращаем оригинальные значения
-    setType(block?.block_type);
+    setTitle(block.title);
+    setType(block.block_type);
     setContent(block.content);
     setIsEditing(false);
   };
@@ -110,195 +114,170 @@ function SortableBlock({ block, planId }: { block: Block; planId: number }) {
     }
   };
 
-  const blockTypes = [
-    { value: "text", label: "Текст" },
-    { value: "heading", label: "Заголовок" },
-    { value: "subheading", label: "Подзаголовок" },
-    { value: "financial", label: "Финансовый" },
-    { value: "list", label: "Список" },
-    { value: "image", label: "Изображение" },
-    { value: "chart", label: "График" },
-    { value: "divider", label: "Разделитель" },
-    { value: "quote", label: "Цитата" },
-    { value: "code", label: "Код" },
-    { value: "financial_chart", label: "Финансовый график" },
-  ] as const;
-
-  // if (isEditing) {
-  //   return (
-  //     <Card ref={setNodeRef} style={style} className="border-2 border-blue-500">
-  //       <CardHeader>
-  //         <Input 
-  //           value={title} 
-  //           onChange={(e) => setTitle(e.target.value)} 
-  //         />
-  //       </CardHeader>
-  //       <CardContent>
-  //         <Textarea 
-  //           value={content} 
-  //           onChange={(e) => setContent(e.target.value)} 
-  //           rows={6} 
-  //         />
-  //         <div className="flex gap-2 mt-4">
-  //           <Button 
-  //             size="sm" 
-  //             onClick={handleSave} 
-  //             disabled={updateMutation.isPending}
-  //           >
-  //             <Save className="w-4 h-4 mr-1" /> 
-  //             {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
-  //           </Button>
-  //           <Button 
-  //             size="sm" 
-  //             variant="outline" 
-  //             onClick={handleCancel}
-  //             disabled={updateMutation.isPending}
-  //           >
-  //             <X className="w-4 h-4" /> Отмена
-  //           </Button>
-  //         </div>
-  //       </CardContent>
-  //     </Card>
-  //   );
-  // }
+  const currentBlockType = blockTypes.find((t) => t.value === type);
 
   if (isEditing) {
     return (
-      <Card ref={setNodeRef} style={style} className="border-2 border-blue-500">
-        <CardHeader>
-          <Input
+      <Paper
+        ref={setNodeRef}
+        style={style}
+        elevation={4}
+        sx={{
+          p: 3,
+          borderRadius: "18px",
+          border: `2px solid ${theme.palette.primary.main}`,
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Заголовок блока"
+            fullWidth
           />
 
-          {/* УМНОЕ ПОЛЕ С ФИЛЬТРАЦИЕЙ */}
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between mt-2 text-left font-normal"
-              >
-                <span className="truncate">
-                  {type
-                    ? blockTypes.find((t) => t.value === type)?.label || type
-                    : "Выберите тип блока..."}
-                </span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command shouldFilter={false}> {/* ← ВАЖНО! Отключаем встроенный фильтр */}
-                <CommandInput
-                  placeholder="Поиск типа блока..."
-                  value={search}
-                  onValueChange={setSearch} // ← добавляем своё состояние
-                />
-                <CommandList>
-                  <CommandEmpty>Ничего не найдено</CommandEmpty>
-                  <CommandGroup>
-                    {blockTypes
-                      .filter((blockType) =>
-                        blockType.label.toLowerCase().includes(search.toLowerCase()) ||
-                        blockType.value.toLowerCase().includes(search.toLowerCase())
-                      )
-                      .map((blockType) => (
-                        <CommandItem
-                          key={blockType.value}
-                          value={blockType.value}
-                          onSelect={(currentValue) => {
-                            setType(currentValue);
-                            setOpen(false);
-                            setSearch(""); // ← очищаем поиск
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              type === blockType.value ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {blockType.label}
-                        </CommandItem>
-                      ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </CardHeader>
+          <Autocomplete
+            value={currentBlockType || null}
+            onChange={(_, newValue) => {
+              if (newValue) {
+                setType(newValue.value);
+              }
+            }}
+            options={blockTypes}
+            getOptionLabel={(option) => option.label}
+            renderInput={(params) => (
+              <TextField {...params} label="Тип блока" placeholder="Выберите тип блока..." />
+            )}
+            fullWidth
+          />
 
-        <CardContent>
-          <Textarea
+          <TextField
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={6}
             placeholder="Содержимое блока..."
+            multiline
+            fullWidth
           />
-          <div className="flex gap-2 mt-4">
+
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
             <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={updateMutation.isPending}
-            >
-              <Save className="w-4 h-4 mr-1" />
-              {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
+              size="small"
+              variant="outlined"
               onClick={handleCancel}
               disabled={updateMutation.isPending}
+              startIcon={<X size={18} />}
             >
-              <X className="w-4 h-4" /> Отмена
+              Отмена
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={handleSave}
+              disabled={updateMutation.isPending}
+              startIcon={<Save size={18} />}
+            >
+              {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
     );
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
+    <Paper
+      ref={setNodeRef}
+      style={style}
+      elevation={isDragging ? 8 : 4}
+      sx={{
+        p: 3,
+        borderRadius: "18px",
+        transition: isDragging ? "none" : "all 0.25s ease",
+        borderLeft: `4px solid ${theme.palette.primary.main}`,
+        ...(isDragging
+          ? {
+            boxShadow: "0 12px 32px rgba(0,0,0,0.2)",
+          }
+          : {
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            },
+          }),
+      }}
+    >
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
+          <Box
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing"
+            sx={{
+              cursor: isDragging ? "grabbing" : "grab",
+              display: "flex",
+              alignItems: "center",
+              color: "text.secondary",
+              p: 0.5,
+              "&:hover": {
+                color: "text.primary",
+              },
+              "&:active": {
+                cursor: "grabbing",
+              },
+              touchAction: "none",
+            }}
           >
-            <GripVertical className="w-5 h-5 text-gray-400" />
-          </button>
-          <div>
-            <CardTitle>{block.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{block.block_type}</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
+            <GripVertical size={20} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {block.title}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {currentBlockType?.label || block.block_type}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <IconButton
+            size="small"
             onClick={() => setIsEditing(true)}
             disabled={updateMutation.isPending}
+            sx={{
+              color: theme.palette.primary.main,
+              "&:hover": {
+                bgcolor: theme.palette.primary.main + "15",
+              },
+            }}
           >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
+            <Pencil size={18} />
+          </IconButton>
+          <IconButton
+            size="small"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
+            sx={{
+              color: theme.palette.error.main,
+              "&:hover": {
+                bgcolor: theme.palette.error.main + "15",
+              },
+            }}
           >
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="prose max-w-none whitespace-pre-wrap">{block.content}</div>
-      </CardContent>
-    </Card>
+            <Trash2 size={18} />
+          </IconButton>
+        </Box>
+      </Box>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
+      >
+        {block.content}
+      </Typography>
+    </Paper>
   );
 }
 
@@ -312,11 +291,17 @@ export default function PlanBlocks({ blocks, planId }: Props) {
   }, [blocks]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
-  // Временно добавьте в компонент
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
@@ -324,8 +309,6 @@ export default function PlanBlocks({ blocks, planId }: Props) {
         const oldIndex = prev.findIndex((i) => i.id === active.id);
         const newIndex = prev.findIndex((i) => i.id === over.id);
         const newOrder = arrayMove(prev, oldIndex, newIndex);
-
-        console.log('Sending new order:', newOrder.map((b) => b.id));
 
         reorderMutation.mutate(newOrder.map((b) => b.id));
         return newOrder;
@@ -343,15 +326,11 @@ export default function PlanBlocks({ blocks, planId }: Props) {
         items={items.map((b) => b.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-4">
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {items.map((block) => (
-            <SortableBlock
-              key={block.id}
-              block={block}
-              planId={planId}
-            />
+            <SortableBlock key={block.id} block={block} planId={planId} />
           ))}
-        </div>
+        </Box>
       </SortableContext>
     </DndContext>
   );

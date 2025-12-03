@@ -1,41 +1,66 @@
 // src/features/business-plans/components/BusinessPlanList.tsx
+"use client";
 
 import { useBusinessPlanList } from "../api/useBusinessPlanList";
 import BusinessPlanCard from "./BusinessPlanCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { APP_ROUTES } from "@/src/lib/appRoutes";
+import { Box, Typography, Button, Skeleton } from "@mui/material";
 
-export default function BusinessPlanList() {
+type Props = {
+  onOpenCreate?: () => void;
+};
+
+export default function BusinessPlanList({ onOpenCreate }: Props) {
   const { data: plans, isLoading } = useBusinessPlanList();
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+          gap: 3,
+        }}
+      >
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-48" />
+          <Skeleton key={i} variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
         ))}
-      </div>
+      </Box>
     );
   }
 
   if (!plans || plans.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">У вас пока нет бизнес-планов</h2>
-        <Button size="sm" variant="outline" asChild>
-          <Link href={APP_ROUTES.dashboard.plans.create}>Создать первый план</Link>
+      <Box
+        sx={{
+          textAlign: "center",
+          py: 6,
+        }}
+      >
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+          У вас пока нет бизнес-планов
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => onOpenCreate?.()}
+        >
+          Создать первый план
         </Button>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+        gap: 3,
+      }}
+    >
       {plans.map((plan) => (
         <BusinessPlanCard key={plan.id} plan={plan} />
       ))}
-    </div>
+    </Box>
   );
 }

@@ -1,52 +1,101 @@
-// src/features/business-plans/components/DeletePlanButton.tsx
+// src/features/business-plans/components/BusinessPlanActions.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    IconButton,
+} from "@mui/material";
 import { useBusinessPlanDelete } from "../api/useBusinessPlanDelete";
 import { Trash2 } from "lucide-react";
 
 type Props = {
     planId: number;
+    size?: "sm" | "default";
 };
 
-export default function DeletePlanButton({ planId }: Props) {
+export default function DeletePlanButton({ planId, size }: Props) {
+    const [open, setOpen] = useState(false);
     const mutation = useBusinessPlanDelete();
 
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleDelete = () => {
+        mutation.mutate(planId, {
+            onSuccess: () => {
+                setOpen(false);
+            },
+        });
+    };
+
     return (
-        <AlertDialog>
-            <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive">
-                    <Trash2 className="w-4 h-4" />
+        <>
+            {size === "default" ? (
+                <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<Trash2 size={18} />}
+                    onClick={handleOpen}
+                >
+                    Удалить
                 </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Удалить бизнес-план?</AlertDialogTitle>
-                    <AlertDialogDescription>
+            ) : (
+                <IconButton
+                    size="small"
+                    color="error"
+                    onClick={handleOpen}
+                    sx={{
+                        "&:hover": {
+                            bgcolor: "error.main",
+                            color: "error.contrastText",
+                        },
+                    }}
+                >
+                    <Trash2 size={18} />
+                </IconButton>
+            )}
+
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Удалить бизнес-план?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
                         Это действие нельзя отменить. План будет удалён навсегда.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Отмена</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={() => mutation.mutate(planId)}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="inherit">
+                        Отмена
+                    </Button>
+                    <Button
+                        onClick={handleDelete}
+                        color="error"
+                        variant="contained"
                         disabled={mutation.isPending}
+                        autoFocus
                     >
                         {mutation.isPending ? "Удаляем..." : "Удалить"}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 }

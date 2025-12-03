@@ -1,9 +1,10 @@
 // src/features/business-plans/components/BlockActions.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { IconButton, Tooltip, Box } from "@mui/material";
 import { Pencil, Trash2 } from "lucide-react";
 import { useBlockDelete } from "../api/useBlockDelete";
+import { useTheme } from "@mui/material/styles";
 
 type Props = {
     blockId: number;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function BlockActions({ blockId, planId, onEdit }: Props) {
+    const theme = useTheme();
     const deleteMutation = useBlockDelete(planId);
 
     const handleDelete = () => {
@@ -21,20 +23,38 @@ export default function BlockActions({ blockId, planId, onEdit }: Props) {
     };
 
     return (
-        <div className="flex gap-2">
+        <Box sx={{ display: "flex", gap: 0.5 }}>
             {onEdit && (
-                <Button variant="outline" size="sm" onClick={onEdit}>
-                    <Pencil className="w-4 h-4" />
-                </Button>
+                <Tooltip title="Редактировать">
+                    <IconButton
+                        size="small"
+                        onClick={onEdit}
+                        sx={{
+                            color: theme.palette.primary.main,
+                            "&:hover": {
+                                bgcolor: theme.palette.primary.main + "15",
+                            },
+                        }}
+                    >
+                        <Pencil size={18} />
+                    </IconButton>
+                </Tooltip>
             )}
-            <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-            >
-                <Trash2 className="w-4 h-4" />
-            </Button>
-        </div>
+            <Tooltip title="Удалить">
+                <IconButton
+                    size="small"
+                    onClick={handleDelete}
+                    disabled={deleteMutation.isPending}
+                    sx={{
+                        color: theme.palette.error.main,
+                        "&:hover": {
+                            bgcolor: theme.palette.error.main + "15",
+                        },
+                    }}
+                >
+                    <Trash2 size={18} />
+                </IconButton>
+            </Tooltip>
+        </Box>
     );
 }

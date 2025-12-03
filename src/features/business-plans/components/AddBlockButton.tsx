@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@mui/material";
 import { Plus } from "lucide-react";
 import { useBlockCreate } from "../api/useBlockCreate";
 
@@ -32,9 +32,10 @@ export default function AddBlockButton({ planId }: Props) {
         <Button
             onClick={handleAddBlock}
             disabled={createMutation.isPending}
-            className="mt-4"
+            variant="contained"
+            startIcon={<Plus size={18} />}
+            sx={{ mt: 2 }}
         >
-            <Plus className="w-4 h-4 mr-2" />
             {createMutation.isPending ? "Добавление..." : "Добавить блок"}
         </Button>
     );
