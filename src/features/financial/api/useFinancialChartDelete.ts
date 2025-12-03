@@ -1,18 +1,18 @@
-// src/features/financial/api/useFinancialChartCreate.ts
+// src/features/financial/api/useFinancialChartDelete.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/src/lib/axios";
 import { API_ROUTES } from "@/src/lib/apiRoutes";
-import { CreateFinancialChartData } from "@/src/features/financial/types";
 
-export const useFinancialChartCreate = () => {
+export const useFinancialChartDelete = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: CreateFinancialChartData) => {
-            const res = await api.post(API_ROUTES.financial.charts.create, data);
+        mutationFn: async (id: number) => {
+            const res = await api.delete(API_ROUTES.financial.charts.delete(id));
             return res.data;
         },
         onSuccess: () => {
+            // Обновляем список графиков
             queryClient.invalidateQueries({ queryKey: ["financial-charts"] });
         },
     });
