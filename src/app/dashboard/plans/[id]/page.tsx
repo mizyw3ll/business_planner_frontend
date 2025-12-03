@@ -3,56 +3,124 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { useBusinessPlanGet } from "@/src/features/business-plans/api/useBusinessPlanGet";
 import PlanBlocks from "@/src/features/business-plans/components/PlanBlocks";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Skeleton, Button, Box, Typography } from "@mui/material";
 import Link from "next/link";
 import AddBlockButton from "@/src/features/business-plans/components/BlockForm";
+import ButtonBase from "@mui/material/ButtonBase";
+import Divider from "@mui/material/Divider";
+import { ArrowLeft, Edit } from "lucide-react";
+import { APP_ROUTES } from "@/src/lib/appRoutes";
+import DeletePlanButton from "@/src/features/business-plans/components/BusinessPlanActions";
+
+function CollapsibleDescription({ text }: { text: string }) {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <Box sx={{ mt: 2 }}>
+            <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{
+                    fontSize: "1.25rem",
+                    wordBreak: "break-word",
+                    ...(expanded
+                        ? {}
+                        : {
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                        }),
+                }}
+            >
+                {text}
+            </Typography>
+            <ButtonBase
+                onClick={() => setExpanded((prev) => !prev)}
+                sx={{
+                    mt: 2,
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    fontSize: "0.75rem",
+                    color: "primary.main",
+                    "&:hover": {
+                        color: "primary.dark",
+                    },
+                }}
+            >
+                <Divider sx={{ flex: 1, borderColor: "divider" }} />
+                <Typography variant="caption" sx={{ whiteSpace: "nowrap" }}>
+                    {expanded ? "Скрыть" : "Раскрыть полностью"}
+                </Typography>
+                <Divider sx={{ flex: 1, borderColor: "divider" }} />
+            </ButtonBase>
+        </Box>
+    );
+}
 
 export default function BusinessPlanDetailPage() {
-  const { id } = useParams();
-  const planId = Number(id);
-  const { data: plan, isLoading, error } = useBusinessPlanGet(planId);
+    const { id } = useParams();
+    const planId = Number(id);
+    const { data: plan, isLoading, error } = useBusinessPlanGet(planId);
 
-  if (isLoading) {
+    if (isLoading) {
+        return (
+            <Box sx={{ maxWidth: 1200, mx: "auto", py: 10 }}>
+                <Skeleton variant="rectangular" height={48} width={256} sx={{ mb: 4, borderRadius: 1 }} />
+                <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
+            </Box>
+        );
+    }
+
+    if (error || !plan) {
+        return (
+            <Box sx={{ maxWidth: 1200, mx: "auto", py: 10, textAlign: "center" }}>
+                <Typography variant="h4" color="error" sx={{ fontWeight: 600, mb: 4 }}>
+                    План не найден
+                </Typography>
+                <Button component={Link} href="/dashboard" variant="contained">
+                    Назад к списку
+                </Button>
+            </Box>
+        );
+    }
+
     return (
-      <div className="container mx-auto py-10">
-        <Skeleton className="h-12 w-64 mb-8" />
-        <Skeleton className="h-96" />
-      </div>
+        <Box sx={{ maxWidth: 1200, mx: "auto", py: 10 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 8 }}>
+                <Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                        <Button variant="outlined" size="small" component={Link} href="/dashboard/plans" startIcon={<ArrowLeft size={18} />}>
+                            К списку планов
+                        </Button>
+                    </Box>
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            fontWeight: 600,
+                            wordBreak: "break-word",
+                            mb: 2,
+                        }}
+                    >
+                        {plan?.title}
+                    </Typography>
+                    <AddBlockButton planId={planId} />
+                    {plan?.description && <CollapsibleDescription text={plan.description} />}
+                </Box>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button variant="outlined" component={Link} href={APP_ROUTES.dashboard.plans.edit(planId)} startIcon={<Edit size={18} />}>
+                        Редактировать
+                    </Button>
+                    <DeletePlanButton planId={planId} size="default" />
+                </Box>
+            </Box>
+
+            <PlanBlocks blocks={plan?.blocks || []} planId={planId} />
+        </Box>
     );
-  }
-
-  if (error || !plan) {
-    return (
-      <div className="container mx-auto py-10 text-center">
-        <h1 className="text-3xl font-bold text-red-600 mb-4">План не найден</h1>
-        <Button asChild>
-          <Link href="/dashboard">Назад к списку</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-4xl font-bold">{plan?.title}</h1>
-          <AddBlockButton planId={planId} />
-          {plan?.description && (
-            <p className="text-xl text-muted-foreground mt-2">
-              {plan?.description}
-            </p>
-          )}
-        </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard">Назад</Link>
-        </Button>
-      </div>
-
-      <PlanBlocks blocks={plan?.blocks || []} planId={planId} />
-    </div>
-  );
 }
