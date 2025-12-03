@@ -1,42 +1,93 @@
 // src/features/financial/components/FinancialChartList.tsx
+"use client";
+
 import FinancialChartCard from "./FinancialChartCard";
 import { useFinancialChartList } from "../api/useFinancialChartList";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { APP_ROUTES } from "@/src/lib/appRoutes";
+import { useCurrencyList } from "../api/useCurrencyList";
+import { Box, Typography, Button, Skeleton } from "@mui/material";
+import { useMemo } from "react";
+import { FinancialChart } from "../types";
 
-export default function FinancialChartList() {
+type Props = {
+    onOpenCreate?: () => void;
+};
+
+export default function FinancialChartList({ onOpenCreate }: Props) {
     const { data: charts, isLoading } = useFinancialChartList();
+    const { data: currencies } = useCurrencyList();
+
+    // Создаем мапу валют по ID для быстрого доступа
+    const currencyMap = useMemo(() => {
+        if (!currencies) return new Map();
+        return new Map(currencies.map(c => [c.id, c]));
+    }, [currencies]);
+
+    // Обогащаем графики валютой, если она не пришла с бэкенда
+    const enrichedCharts = useMemo(() => {
+        if (!charts) return [];
+        return charts.map((chart: FinancialChart) => {
+            if (chart.currency) {
+                return chart; // Валюта уже есть
+            }
+            // Если валюты нет, пытаемся получить её из списка валют по currency_id
+            const currency = currencyMap.get(chart.currency_id);
+            if (currency) {
+                return { ...chart, currency };
+            }
+            return chart;
+        });
+    }, [charts, currencyMap]);
 
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Box
+                sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+                    gap: 3,
+                    mt: 3,
+                }}
+            >
                 {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-48" />
+                    <Skeleton key={i} variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
                 ))}
-            </div>
+            </Box>
         );
     }
 
     if (!charts || charts.length === 0) {
         return (
-            <div className="text-center py-12">
-                <h2 className="text-2xl font-bold mb-4">У вас пока нет финансовых графиков</h2>
-                <Button asChild>
-                    <Link href={APP_ROUTES.dashboard.financial.create}>
-                        Создать первый график
-                    </Link>
+            <Box
+                sx={{
+                    textAlign: "center",
+                    py: 6,
+                    mt: 3,
+                }}
+            >
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+                    У вас пока нет финансовых графиков
+                </Typography>
+                <Button
+                    variant="contained"
+                    onClick={() => onOpenCreate?.()}
+                >
+                    Создать первый график
                 </Button>
-            </div>
+            </Box>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {charts.map((chart) => (
+        <Box
+            sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+                gap: 3,
+            }}
+        >
+            {enrichedCharts.map((chart) => (
                 <FinancialChartCard key={chart.id} chart={chart} size="small" />
             ))}
-        </div>
+        </Box>
     );
 }

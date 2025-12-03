@@ -23,7 +23,7 @@ export type FinancialChart = {
     title: string;
     description: string | null;
     currency_id: number;
-    currency: Currency;
+    currency?: Currency; // Опциональный, так как может не приходить в списке
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -34,6 +34,7 @@ export type CreateFinancialChartData = {
     title: string;
     currency_id: number;
     description?: string;
+    is_active?: boolean;
 };
 
 export type UpdateFinancialChartData = {
@@ -55,7 +56,7 @@ export type UpdateChartPointData = {
     date?: string; // ISO string
     type?: "income" | "expense";
     amount?: string; // Decimal как строка
-    description?: string | null;
+    description?: string;
 };
 
 export type FinancialChartList = FinancialChart[];
