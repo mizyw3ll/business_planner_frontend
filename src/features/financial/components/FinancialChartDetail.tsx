@@ -29,6 +29,7 @@ import ChartPointList from "./ChartPointList";
 import ChartPointForm from "./ChartPointForm";
 import { formatCurrency, getCurrencySymbol } from "../utils/currency";
 import { Plus } from "lucide-react";
+import { useMediaQuery } from "@mui/material";
 import { useChartPointCreate, useChartPointUpdate, useChartPointDelete } from "../api";
 import { ChartPoint } from "../types";
 
@@ -132,6 +133,7 @@ function CollapsibleDescription({ text }: { text: string }) {
 
 export default function FinancialChartDetail({ chart }: Props) {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const router = useRouter();
     const data = convertToAreaChartData(chart.chart_points);
     const stats = calculateStats(chart.chart_points);
@@ -187,31 +189,30 @@ export default function FinancialChartDetail({ chart }: Props) {
     return (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {/* Заголовок */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2 }}>
                 <Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { xs: "flex-start", md: "center" }, gap: 2, width: { xs: "100%", md: "auto" } }}>
+                        {/* Кнопка "Назад" — на мобильных только иконка */}
                         <Button
                             variant="outlined"
                             size="small"
                             component={Link}
                             href={APP_ROUTES.dashboard.financial.list}
+                            sx={{
+                                minWidth: { xs: "auto", md: "unset" },
+                                px: { xs: 1.5, md: 2 },
+                            }}
                             startIcon={<ArrowLeft size={18} />}
                         >
-                            К списку графиков
+                            {isMobile ? null : "К списку графиков"}
                         </Button>
                         <Chip
                             label={chart.is_active ? "Активен" : "Неактивен"}
                             color={chart.is_active ? "success" : "default"}
                             size="small"
                         />
-                        {chart.currency && (
-                            <Chip
-                                label={`${chart.currency.name} (${currencySymbol})`}
-                                size="small"
-                                variant="outlined"
-                            />
-                        )}
                     </Box>
+
                     <Typography
                         variant="h4"
                         sx={{
@@ -235,7 +236,7 @@ export default function FinancialChartDetail({ chart }: Props) {
                         Создан {format(new Date(chart.created_at), "dd MMMM yyyy", { locale: ru })}
                     </Typography>
                 </Box>
-                <Box sx={{ display: "flex", gap: 1 }}>
+                {/* <Box sx={{ display: "flex", gap: 1 }}>
                     <Button
                         variant="outlined"
                         component={Link}
@@ -247,6 +248,31 @@ export default function FinancialChartDetail({ chart }: Props) {
                     <FinancialChartActions
                         chartId={chart.id}
                         size="default"
+                        onSuccess={() => router.push(APP_ROUTES.dashboard.financial.list)}
+                    />
+                </Box> */}
+                {/* Правая часть — редактировать и действия */}
+                <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+                    {/* Редактировать — только иконка на мобильных */}
+                    <Button
+                        variant="outlined"
+                        size={isMobile ? "small" : "medium"}
+                        component={Link}
+                        href={APP_ROUTES.dashboard.financial.edit(chart.id)}
+                        sx={{
+                            minWidth: { xs: "40px", md: "auto" },
+                            px: { xs: 1, md: 2 },
+                        }}
+                        startIcon={<Edit size={18} />}
+                    >
+                        {isMobile ? null : "Редактировать"}
+                    </Button>
+
+                    {/* FinancialChartActions — тоже адаптируем */}
+                    <FinancialChartActions
+                        chartId={chart.id}
+                        iconOnly={isMobile}
+                        iconSize={isMobile ? "small" : "medium"} 
                         onSuccess={() => router.push(APP_ROUTES.dashboard.financial.list)}
                     />
                 </Box>
