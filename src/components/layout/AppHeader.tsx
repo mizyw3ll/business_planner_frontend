@@ -7,6 +7,8 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -14,6 +16,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import Link from "next/link";
 import { APP_ROUTES } from "@/src/lib/appRoutes";
 import { useTheme } from "next-themes";
+import { useMediaQuery } from "@mui/material";
 
 interface AppHeaderProps {
     username?: string | null;
@@ -21,119 +24,103 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ username, email }: AppHeaderProps) {
-    const { resolvedTheme, theme, setTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
-    const [domTheme, setDomTheme] = React.useState<"light" | "dark">("light");
+    const isMobile = useMediaQuery("(max-width: 900px)");
+    const isVerySmall = useMediaQuery("(max-width: 500px)");
 
-    React.useEffect(() => {
-        setMounted(true);
-        if (typeof document === "undefined") return;
-        const root = document.documentElement;
-        const updateTheme = () => {
-            setDomTheme(root.classList.contains("dark") ? "dark" : "light");
-        };
-        updateTheme();
-        const observer = new MutationObserver(updateTheme);
-        observer.observe(root, { attributes: true, attributeFilter: ["class"] });
-        return () => observer.disconnect();
-    }, []);
+    React.useEffect(() => setMounted(true), []);
 
-    React.useEffect(() => {
-        if (resolvedTheme === "dark" || resolvedTheme === "light") {
-            setDomTheme(resolvedTheme);
-        } else if (theme === "dark" || theme === "light") {
-            setDomTheme(theme);
-        }
-    }, [resolvedTheme, theme]);
+    const displayName = username ?? email?.split("@")[0] ?? "Профиль";
+    const isDark = resolvedTheme === "dark";
 
-    const currentTheme = domTheme;
-    const isDark = currentTheme === "dark";
-    const displayName = username ?? email ?? "Мой профиль";
+    const siteName = isVerySmall 
+        ? "Бизнес-Лего"                                          
+        : isMobile 
+            ? "Бизнес-Лего"                               
+            : "Бизнес-Лего — Финансовый дашборд";         
 
-    const handleToggleTheme = () => {
-        setTheme(isDark ? "light" : "dark");
-    };
 
     return (
         <AppBar
             position="fixed"
-            sx={(theme) => ({
-                top: 0,
-                backgroundColor: theme.palette.primary.main, 
-                color: theme.palette.primary.contrastText,
+            sx={{
+                zIndex: (theme) => theme.zIndex.drawer + 1,
                 backdropFilter: "blur(12px)",
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                boxShadow: isDark
-                    ? "0 10px 30px rgba(2,6,23,0.5)"
-                    : "0 6px 20px rgba(15,23,42,0.12)",
-                zIndex: theme.zIndex.appBar + 1,
-                transition: "background-color 200ms ease, color 200ms ease, box-shadow 200ms ease",
-            })}
+                backgroundColor: "background.paper",
+                borderBottom: 1,
+                borderColor: "divider",
+                boxShadow: isDark 
+                    ? "0 8px 32px rgba(0,0,0,0.4)"
+                    : "0 4px 20px rgba(0,0,0,0.08)",
+            }}
         >
-            <Toolbar sx={{ px: 3, gap: 1 }}>
-                <Typography
-                    variant="h6"
-                    sx={{
-                        flexGrow: 1,
-                        fontWeight: 600,
-                        color: "var(--sidebar-foreground)",
-                    }}
-                >
-                    Финансовый дашборд
-                </Typography>
+            <Toolbar sx={{ px: { xs: 1.5, sm: 3 }, minHeight: { xs: 56, sm: 64 } }}>
+                {/* Логотип + название */}
+                <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 1.5 }}>
+                    <IconButton
+                        component={Link}
+                        href={APP_ROUTES.dashboard.root}
+                        sx={{ color: "primary.main" }}
+                    >
+                        <DashboardIcon />
+                    </IconButton>
 
-                <Button
-                    component={Link}
-                    href={APP_ROUTES.dashboard.root}
-                    startIcon={<DashboardIcon />}
-                    sx={{
-                        color: "var(--sidebar-foreground)",
-                        textTransform: "none",
-                        fontWeight: 500,
-                        "&:hover": {
-                            backgroundColor: "color-mix(in srgb, var(--sidebar-foreground) 6%, transparent)",
-                        },
-                    }}
-                >
-                    Dashboard
-                </Button>
+                    <Typography
+                        variant={isMobile ? "subtitle1" : "h6"}
+                        sx={{
+                            fontWeight: 700,
+                            color: "text.primary",
+                            letterSpacing: "-0.5px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: { xs: 180, sm: 300, md: 400 },
+                        }}
+                    >
+                        {siteName}
+                    </Typography>
+                </Box>
 
-                <IconButton
-                    onClick={handleToggleTheme}
-                    sx={{
-                        ml: 1,
-                        color: "var(--sidebar-foreground)",
-                        "&:hover": {
-                            backgroundColor: "color-mix(in srgb, var(--sidebar-foreground) 10%, transparent)",
-                        },
-                    }}
-                >
+                {/* Кнопка Дашборд — скрываем текст на мобильных */}
+                {!isVerySmall && (
+                    <Tooltip title="Перейти на дашборд">
+                        <Button
+                            component={Link}
+                            href={APP_ROUTES.dashboard.root}
+                            startIcon={<DashboardIcon />}
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 500,
+                                display: { xs: "none", md: "flex" }, // полностью скрываем на мобильных
+                            }}
+                        >
+                            Дашборд
+                        </Button>
+                    </Tooltip>
+                )}
+
+                {/* Тема */}
+                <IconButton onClick={() => setTheme(isDark ? "light" : "dark")}>
                     {mounted && (isDark ? <LightModeIcon /> : <DarkModeIcon />)}
                 </IconButton>
 
-                <IconButton
-                    component={Link}
-                    href={APP_ROUTES.dashboard.profile}
-                    sx={{
-                        ml: 1,
-                        color: "var(--sidebar-foreground)",
-                        "&:hover": {
-                            backgroundColor: "color-mix(in srgb, var(--sidebar-foreground) 10%, transparent)",
-                        },
-                    }}
-                >
-                    <AccountCircle />
-                </IconButton>
+                {/* Профиль */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Tooltip title="Личный кабинет">
+                        <IconButton component={Link} href={APP_ROUTES.dashboard.profile}>
+                            <AccountCircle />
+                        </IconButton>
+                    </Tooltip>
 
-                <Typography
-                    variant="body2"
-                    sx={{ ml: 1, color: "var(--sidebar-foreground)", fontWeight: 500 }}
-                >
-                    {displayName}
-                </Typography>
+                    {/* Имя пользователя — скрываем на маленьких экранах */}
+                    {!isMobile && (
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {displayName}
+                        </Typography>
+                    )}
+                </Box>
             </Toolbar>
         </AppBar>
     );
 }
-
-

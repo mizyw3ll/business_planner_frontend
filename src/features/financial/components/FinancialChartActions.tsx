@@ -17,11 +17,19 @@ import { Trash2 } from "lucide-react";
 
 type Props = {
     chartId: number;
-    size?: "sm" | "default";
+    /** Принудительно только иконка (например, на мобильных) */
+    iconOnly?: boolean;
+    /** Опционально: размер для IconButton */
+    iconSize?: "small" | "medium" | "large";
     onSuccess?: () => void;
 };
 
-export default function FinancialChartActions({ chartId, size, onSuccess }: Props) {
+export default function FinancialChartActions({
+    chartId,
+    iconOnly = false,
+    iconSize = "medium",
+    onSuccess,
+}: Props) {
     const [open, setOpen] = useState(false);
     const mutation = useFinancialChartDelete();
 
@@ -43,32 +51,36 @@ export default function FinancialChartActions({ chartId, size, onSuccess }: Prop
         });
     };
 
+    // Основная кнопка — адаптивная
+    const buttonElement = iconOnly ? (
+        <IconButton
+            size={iconSize}
+            color="error"
+            onClick={handleOpen}
+            title="Удалить график"
+            sx={{
+                "&:hover": {
+                    bgcolor: "error.main",
+                    color: "error.contrastText",
+                },
+            }}
+        >
+            <Trash2 size={18} />
+        </IconButton>
+    ) : (
+        <Button
+            variant="contained"
+            color="error"
+            startIcon={<Trash2 size={18} />}
+            onClick={handleOpen}
+        >
+            Удалить
+        </Button>
+    );
+
     return (
         <>
-            {size === "default" ? (
-                <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<Trash2 size={18} />}
-                    onClick={handleOpen}
-                >
-                    Удалить
-                </Button>
-            ) : (
-                <IconButton
-                    size="small"
-                    color="error"
-                    onClick={handleOpen}
-                    sx={{
-                        "&:hover": {
-                            bgcolor: "error.main",
-                            color: "error.contrastText",
-                        },
-                    }}
-                >
-                    <Trash2 size={18} />
-                </IconButton>
-            )}
+            {buttonElement}
 
             <Dialog
                 open={open}

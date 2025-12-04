@@ -16,10 +16,15 @@ import { Trash2 } from "lucide-react";
 
 type Props = {
     planId: number;
-    size?: "sm" | "default";
+    iconOnly?: boolean;        // Новый пропс
+    iconSize?: "small" | "medium";
 };
 
-export default function DeletePlanButton({ planId, size }: Props) {
+export default function BusinessPlanActions({ 
+    planId, 
+    iconOnly = false,
+    iconSize = "medium"
+}: Props) {
     const [open, setOpen] = useState(false);
     const mutation = useBusinessPlanDelete();
 
@@ -28,56 +33,48 @@ export default function DeletePlanButton({ planId, size }: Props) {
         setOpen(true);
     };
 
-    const handleClose = () => {
-        setOpen(false);
-    };
+    const handleClose = () => setOpen(false);
 
     const handleDelete = () => {
         mutation.mutate(planId, {
-            onSuccess: () => {
-                setOpen(false);
-            },
+            onSuccess: () => setOpen(false),
         });
     };
 
+    const button = iconOnly ? (
+        <IconButton
+            size={iconSize}
+            color="error"
+            onClick={handleOpen}
+            title="Удалить план"
+            sx={{
+                "&:hover": {
+                    bgcolor: "error.main",
+                    color: "error.contrastText",
+                },
+            }}
+        >
+            <Trash2 size={18} />
+        </IconButton>
+    ) : (
+        <Button
+            variant="contained"
+            color="error"
+            startIcon={<Trash2 size={18} />}
+            onClick={handleOpen}
+        >
+            Удалить
+        </Button>
+    );
+
     return (
         <>
-            {size === "default" ? (
-                <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<Trash2 size={18} />}
-                    onClick={handleOpen}
-                >
-                    Удалить
-                </Button>
-            ) : (
-                <IconButton
-                    size="small"
-                    color="error"
-                    onClick={handleOpen}
-                    sx={{
-                        "&:hover": {
-                            bgcolor: "error.main",
-                            color: "error.contrastText",
-                        },
-                    }}
-                >
-                    <Trash2 size={18} />
-                </IconButton>
-            )}
+            {button}
 
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    Удалить бизнес-план?
-                </DialogTitle>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>Удалить бизнес-план?</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
+                    <DialogContentText>
                         Это действие нельзя отменить. План будет удалён навсегда.
                     </DialogContentText>
                 </DialogContent>

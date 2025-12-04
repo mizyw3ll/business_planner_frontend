@@ -67,6 +67,20 @@ export function DashboardSidebar() {
             <ListItem disablePadding>
               <ListItemButton
                 component={Link}
+                href={APP_ROUTES.dashboard.root}
+                sx={{
+                  "&:hover": {
+                    backgroundColor:
+                      "color-mix(in srgb, var(--sidebar-foreground) 8%, transparent)",
+                  },
+                }}
+              >
+                <ListItemText primary="Дашборд" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
                 href={APP_ROUTES.dashboard.financial.list}
                 sx={{
                   "&:hover": {
