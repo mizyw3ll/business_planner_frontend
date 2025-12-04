@@ -35,10 +35,10 @@ export function AppHeader({ username, email }: AppHeaderProps) {
     const isDark = resolvedTheme === "dark";
 
     const siteName = isVerySmall 
-        ? "Бизнес-Лего"                                          
+        ? "Конструктор бизнеса"                                          
         : isMobile 
-            ? "Бизнес-Лего"                               
-            : "Бизнес-Лего — Финансовый дашборд";         
+            ? "Конструктор бизнеса"                               
+            : "Конструктор бизнес планов";         
 
 
     return (
@@ -55,7 +55,7 @@ export function AppHeader({ username, email }: AppHeaderProps) {
                     : "0 4px 20px rgba(0,0,0,0.08)",
             }}
         >
-            <Toolbar sx={{ px: { xs: 1.5, sm: 3 }, minHeight: { xs: 56, sm: 64 } }}>
+            <Toolbar sx={{ px: { xs: 1.5, sm: 3 }, minHeight: { xs: 64, sm: 64 } }}>
                 {/* Логотип + название */}
                 <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 1.5 }}>
                     <IconButton

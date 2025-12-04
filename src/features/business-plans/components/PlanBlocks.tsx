@@ -54,13 +54,6 @@ const blockTypes = [
   { value: "heading", label: "Заголовок" },
   { value: "subheading", label: "Подзаголовок" },
   { value: "financial", label: "Финансовый" },
-  { value: "list", label: "Список" },
-  { value: "image", label: "Изображение" },
-  { value: "chart", label: "График" },
-  { value: "divider", label: "Разделитель" },
-  { value: "quote", label: "Цитата" },
-  { value: "code", label: "Код" },
-  { value: "financial_chart", label: "Финансовый график" },
 ] as const;
 
 function SortableBlock({ block, planId }: { block: Block; planId: number }) {
