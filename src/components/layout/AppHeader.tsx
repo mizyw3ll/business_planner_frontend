@@ -35,10 +35,10 @@ export function AppHeader({ username, email }: AppHeaderProps) {
     const isDark = resolvedTheme === "dark";
 
     const siteName = isVerySmall 
-        ? "Конструктор бизнеса"                                          
+        ? "Конструктор БП"                                          
         : isMobile 
-            ? "Конструктор бизнеса"                               
-            : "Конструктор бизнес планов";         
+            ? "Конструктор БП"                               
+            : "Конструктор бизнес-планов";         
 
 
     return (

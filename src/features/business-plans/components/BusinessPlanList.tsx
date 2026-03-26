@@ -34,6 +34,7 @@ export default function BusinessPlanList({ onOpenCreate }: Props) {
         sx={{
           textAlign: "center",
           py: 6,
+          mt: 3,
         }}
       >
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
@@ -41,7 +42,6 @@ export default function BusinessPlanList({ onOpenCreate }: Props) {
         </Typography>
         <Button
           variant="contained"
-          size="small"
           onClick={() => onOpenCreate?.()}
         >
           Создать первый план
